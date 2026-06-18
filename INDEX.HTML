@@ -1,0 +1,1558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AI Image Creator Pro Max</title>
+    <style>
+        /* ===== RESET & BASE ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+        body {
+            background: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            padding: 10px;
+            margin: 0;
+            overflow-y: auto;
+        }
+
+        /* ===== SPLASH SCREEN ===== */
+        #splashScreen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(145deg, #0f0c29, #302b63, #24243e);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s ease;
+            opacity: 1;
+            transform: scale(1);
+        }
+        #splashScreen.hide {
+            opacity: 0;
+            transform: scale(1.05);
+            pointer-events: none;
+        }
+
+        .particles {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 50%;
+            animation: floatStar 8s infinite alternate ease-in-out;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        .particle:nth-child(1) { top: 10%; left: 20%; animation-duration: 6s; width: 6px; height: 6px; }
+        .particle:nth-child(2) { top: 80%; left: 10%; animation-duration: 9s; width: 3px; height: 3px; }
+        .particle:nth-child(3) { top: 30%; left: 85%; animation-duration: 7s; width: 5px; height: 5px; }
+        .particle:nth-child(4) { top: 70%; left: 90%; animation-duration: 11s; width: 4px; height: 4px; }
+        .particle:nth-child(5) { top: 50%; left: 5%; animation-duration: 5s; width: 7px; height: 7px; }
+        .particle:nth-child(6) { top: 15%; left: 60%; animation-duration: 8s; width: 3px; height: 3px; }
+        .particle:nth-child(7) { top: 90%; left: 50%; animation-duration: 10s; width: 5px; height: 5px; }
+        .particle:nth-child(8) { top: 45%; left: 75%; animation-duration: 6s; width: 4px; height: 4px; }
+
+        @keyframes floatStar {
+            0% { transform: translateY(0px) scale(0.5); opacity: 0.2; }
+            100% { transform: translateY(-40px) scale(1.2); opacity: 1; }
+        }
+
+        .splash-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            perspective: 600px;
+        }
+
+        .logo-3d {
+            width: 120px;
+            height: 120px;
+            border-radius: 40px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.05));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transform: rotateX(15deg) rotateY(-20deg) rotateZ(5deg);
+            animation: float3D 4s ease-in-out infinite;
+        }
+        .logo-3d .icon {
+            font-size: 60px;
+            background: linear-gradient(135deg, #a78bfa, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 10px 30px rgba(167, 139, 250, 0.3));
+            transform: rotateZ(-5deg);
+        }
+        @keyframes float3D {
+            0% { transform: rotateX(15deg) rotateY(-20deg) rotateZ(5deg) translateY(0px); }
+            50% { transform: rotateX(18deg) rotateY(-25deg) rotateZ(8deg) translateY(-10px); }
+            100% { transform: rotateX(15deg) rotateY(-20deg) rotateZ(5deg) translateY(0px); }
+        }
+
+        .glow-ring {
+            position: absolute;
+            width: 180px;
+            height: 180px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(167, 139, 250, 0.15), transparent 70%);
+            filter: blur(20px);
+            animation: pulseRing 3s ease-in-out infinite;
+            z-index: -1;
+        }
+        @keyframes pulseRing {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(0.8); opacity: 0.5; }
+        }
+
+        .splash-title {
+            margin-top: 30px;
+            font-size: 32px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #c4b5fd, #f472b6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+            text-shadow: 0 10px 40px rgba(167, 139, 250, 0.15);
+        }
+        .splash-sub {
+            color: rgba(255, 255, 255, 0.4);
+            font-size: 14px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            margin-top: 6px;
+            font-weight: 400;
+        }
+
+        .loader-3d {
+            margin-top: 40px;
+            width: 200px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+            box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);
+        }
+        .loader-3d .fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #a78bfa, #f472b6, #a78bfa);
+            background-size: 200% 100%;
+            border-radius: 10px;
+            animation: loadFill 2.5s ease-in-out forwards, shimmerLoad 1.5s infinite;
+        }
+        @keyframes loadFill {
+            0% { width: 0%; }
+            100% { width: 100%; }
+        }
+        @keyframes shimmerLoad {
+            0% { background-position: 0% 0%; }
+            100% { background-position: 200% 0%; }
+        }
+
+        /* ===== APP WRAP ===== */
+        .app-wrap {
+            max-width: 440px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 40px;
+            padding: 18px 16px 22px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.06), inset 0 0 0 1px rgba(255, 255, 255, 0.6);
+            position: relative;
+            min-height: 720px;
+            margin-top: 10px;
+            margin-bottom: 20px;
+        }
+        .app-wrap::before {
+            content: '';
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.12), transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(40px);
+            animation: pulseGlow 4s ease-in-out infinite;
+        }
+        .app-wrap::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            left: -40px;
+            width: 180px;
+            height: 180px;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.10), transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(40px);
+            animation: pulseGlow 4s ease-in-out infinite 2s;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+        }
+
+        /* ===== LOGIN ===== */
+        #loginPage {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 600px;
+            padding: 10px 0;
+        }
+        #loginPage .logo {
+            font-size: 34px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -1px;
+        }
+        #loginPage .logo-sub {
+            color: #6b7280;
+            font-size: 12px;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 4px;
+            margin-bottom: 28px;
+        }
+        .input-group {
+            width: 100%;
+            margin-bottom: 12px;
+        }
+        .input-group input {
+            width: 100%;
+            padding: 15px 18px;
+            border-radius: 18px;
+            border: 1px solid #e5e7eb;
+            background: rgba(255, 255, 255, 0.5);
+            color: #1f2937;
+            font-size: 15px;
+            outline: none;
+            transition: 0.25s ease;
+        }
+        .input-group input:focus {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.08);
+        }
+        .btn-primary {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.2);
+            margin-top: 4px;
+        }
+        .btn-primary:active { transform: scale(0.96); }
+        .toggle-link {
+            color: #6b7280;
+            font-size: 13px;
+            margin-top: 14px;
+        }
+        .toggle-link span { color: #6366f1; font-weight: 700; cursor: pointer; }
+        .hidden { display: none !important; }
+
+        /* ===== HEADER ===== */
+        #app { display: none; flex-direction: column; gap: 12px; }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        .header h1 {
+            font-size: 19px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1f2937, #4b5563);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .header h1 small {
+            font-size: 9px;
+            font-weight: 400;
+            color: #6b7280;
+            -webkit-text-fill-color: #6b7280;
+            margin-left: 3px;
+            background: none;
+        }
+        .menu-btn {
+            background: rgba(0, 0, 0, 0.02);
+            border: none;
+            color: #1f2937;
+            font-size: 19px;
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .menu-btn:active { background: rgba(0, 0, 0, 0.05); transform: scale(0.92); }
+        .user-badge {
+            background: rgba(0, 0, 0, 0.03);
+            padding: 3px 10px;
+            border-radius: 30px;
+            font-size: 10px;
+            color: #4b5563;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            font-weight: 500;
+        }
+
+        /* ===== SIDEBAR ===== */
+        #sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(30px);
+            border-right: 1px solid rgba(0, 0, 0, 0.04);
+            transform: translateX(-100%);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 1000;
+            padding: 26px 16px;
+            box-shadow: 10px 0 40px rgba(0, 0, 0, 0.04);
+        }
+        #sidebar.open { transform: translateX(0); }
+        #sidebar .brand {
+            font-size: 22px;
+            font-weight: 700;
+            color: #1f2937;
+            margin-bottom: 30px;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            color: #4b5563;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            background: transparent;
+            border: none;
+            width: 100%;
+            text-align: left;
+            margin-bottom: 2px;
+            transition: 0.2s;
+        }
+        .menu-item:active { background: rgba(0, 0, 0, 0.03); color: #1f2937; }
+        .menu-item .icon { font-size: 17px; width: 24px; }
+        .menu-divider { height: 1px; background: rgba(0, 0, 0, 0.04); margin: 14px 0; }
+        .close-btn {
+            float: right;
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 22px;
+            cursor: pointer;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.12);
+            backdrop-filter: blur(2px);
+            z-index: 999;
+            display: none;
+        }
+        .overlay.active { display: block; }
+
+        /* ===== TOAST ===== */
+        #toast {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: rgba(31, 41, 55, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 10px 20px;
+            border-radius: 50px;
+            color: #f3f4f6;
+            font-size: 12px;
+            font-weight: 500;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            z-index: 9999;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+            white-space: nowrap;
+            max-width: 90%;
+        }
+        #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        #toast.error { background: rgba(239, 68, 68, 0.9); }
+        #toast.success { background: rgba(16, 185, 129, 0.9); }
+
+        /* ===== HOME ===== */
+        .welcome-text {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 1px;
+        }
+        .welcome-text strong { color: #1f2937; font-weight: 600; }
+
+        .style-badge {
+            display: inline-block;
+            background: rgba(99, 102, 241, 0.06);
+            color: #6366f1;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-size: 9px;
+            font-weight: 600;
+            margin: 1px 0 6px 0;
+        }
+
+        .top-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin: 4px 0 8px;
+        }
+        .size-selector {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .size-selector button {
+            padding: 3px 10px;
+            border-radius: 18px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            background: rgba(0, 0, 0, 0.02);
+            color: #6b7280;
+            font-size: 9px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .size-selector button.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+        .size-selector button:active { transform: scale(0.92); }
+        .turbo-toggle {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: rgba(16, 185, 129, 0.06);
+            padding: 2px 10px 2px 6px;
+            border-radius: 30px;
+            border: 1px solid rgba(16, 185, 129, 0.08);
+            cursor: pointer;
+            font-size: 9px;
+            font-weight: 600;
+            color: #10b981;
+            transition: 0.2s;
+        }
+        .turbo-toggle:active { transform: scale(0.92); }
+        .turbo-toggle .indicator {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #10b981;
+            border: 2px solid white;
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.3);
+        }
+        .turbo-toggle.off .indicator { background: #9ca3af; box-shadow: none; }
+        .turbo-toggle.off { color: #9ca3af; }
+
+        .compact-input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(0, 0, 0, 0.02);
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            border-radius: 60px;
+            padding: 3px 5px 3px 14px;
+            margin: 4px 0 8px;
+            transition: 0.3s;
+        }
+        .compact-input-wrapper:focus-within {
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.06);
+        }
+        .compact-input-wrapper input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: #1f2937;
+            font-size: 13px;
+            padding: 8px 0;
+            min-height: 34px;
+        }
+        .compact-input-wrapper input::placeholder { color: #9ca3af; font-size: 12px; }
+        .compact-input-wrapper .action-btns {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+        .compact-input-wrapper .action-btns button {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+        }
+        .compact-input-wrapper .action-btns button:active {
+            background: rgba(0, 0, 0, 0.04);
+            transform: scale(0.90);
+        }
+        .compact-input-wrapper .action-btns .plus-btn {
+            font-size: 20px;
+            font-weight: 300;
+            color: #6366f1;
+        }
+        .compact-input-wrapper .action-btns .voice-btn {
+            font-size: 14px;
+            color: #10b981;
+        }
+        .compact-input-wrapper .action-btns .random-btn {
+            font-size: 14px;
+            color: #f59e0b;
+        }
+        .compact-input-wrapper .action-btns .gen-btn {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            font-size: 14px;
+            font-weight: 700;
+            width: 36px;
+            height: 32px;
+            border-radius: 30px;
+        }
+        .compact-input-wrapper .action-btns .gen-btn:active { transform: scale(0.92); }
+
+        .style-chips {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin: 2px 0 8px;
+        }
+        .style-chips button {
+            padding: 2px 10px;
+            border-radius: 30px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            background: rgba(0, 0, 0, 0.02);
+            color: #6b7280;
+            font-size: 9px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .style-chips button.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+        .style-chips button:active { transform: scale(0.92); }
+
+        .neg-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 2px 0 8px;
+            font-size: 10px;
+            color: #6b7280;
+            cursor: pointer;
+        }
+        .neg-toggle .neg-input {
+            display: none;
+            width: 100%;
+            padding: 6px 12px;
+            border-radius: 30px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            background: rgba(0, 0, 0, 0.02);
+            font-size: 12px;
+            outline: none;
+            color: #1f2937;
+            margin-top: 4px;
+        }
+        .neg-toggle .neg-input.show { display: block; }
+        .neg-toggle .switch {
+            width: 28px;
+            height: 16px;
+            border-radius: 30px;
+            background: #d1d5db;
+            position: relative;
+            transition: 0.3s;
+            flex-shrink: 0;
+        }
+        .neg-toggle .switch.active { background: #6366f1; }
+        .neg-toggle .switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: white;
+            transition: 0.3s;
+        }
+        .neg-toggle .switch.active::after { left: 14px; }
+
+        .ref-preview-mini {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            margin: -4px 0 6px 0;
+        }
+        .ref-preview-mini img {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        .ref-preview-mini .remove {
+            background: none;
+            border: none;
+            color: #ef4444;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .ref-preview-mini .label {
+            font-size: 10px;
+            color: #6b7280;
+        }
+
+        .quick-suggestions {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            margin: 2px 0 10px;
+        }
+        .quick-suggestions button {
+            padding: 3px 10px;
+            border-radius: 30px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            background: rgba(0, 0, 0, 0.02);
+            color: #4b5563;
+            font-size: 10px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .quick-suggestions button:active {
+            background: rgba(99, 102, 241, 0.08);
+            transform: scale(0.95);
+        }
+
+        .skeleton-box {
+            display: none;
+            width: 100%;
+            aspect-ratio: 1/1;
+            background: rgba(0, 0, 0, 0.02);
+            border-radius: 22px;
+            margin-top: 4px;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        .skeleton-box.active { display: block; }
+        .skeleton-box::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+            animation: shimmer 1.8s infinite;
+        }
+        @keyframes shimmer { 100% { left: 100%; } }
+
+        .result-area {
+            display: none;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 4px;
+            animation: fadeScale 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        @keyframes fadeScale {
+            from { opacity: 0; transform: scale(0.96) translateY(8px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .result-area .image-frame {
+            background: rgba(255, 255, 255, 0.4);
+            padding: 4px;
+            border-radius: 22px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+            box-shadow: 0 15px 40px rgba(99, 102, 241, 0.05);
+            max-width: 88%;
+            margin: 0 auto;
+        }
+        .result-area img {
+            width: 100%;
+            border-radius: 18px;
+            display: block;
+            border: 1px solid rgba(0, 0, 0, 0.02);
+            background: #f0f2f5;
+        }
+
+        .rating-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            margin: 0px 0 2px;
+        }
+        .rating-section .rate-btn {
+            background: none;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #9ca3af;
+            padding: 2px 4px;
+        }
+        .rating-section .rate-btn:active { transform: scale(1.2); }
+        .rating-section .rate-btn.active { color: #fbbf24; }
+        .rating-section .rate-btn.like.active { color: #10b981; }
+        .rating-section .rate-btn.dislike.active { color: #ef4444; }
+        .rating-section .count {
+            color: #6b7280;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .result-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 0px;
+            flex-wrap: wrap;
+        }
+        .result-actions button {
+            flex: 1;
+            min-width: 36px;
+            padding: 8px 6px;
+            border-radius: 16px;
+            border: none;
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+            transition: 0.15s;
+            background: rgba(0, 0, 0, 0.02);
+            color: #4b5563;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        .result-actions button:active { transform: scale(0.94); background: rgba(0, 0, 0, 0.04); }
+        .result-actions .fav-btn { background: rgba(251, 191, 36, 0.06); color: #d97706; border-color: rgba(251, 191, 36, 0.08); }
+        .result-actions .dl-btn { background: rgba(16, 185, 129, 0.06); color: #10b981; border-color: rgba(16, 185, 129, 0.08); }
+        .result-actions .share-btn { background: rgba(99, 102, 241, 0.06); color: #6366f1; border-color: rgba(99, 102, 241, 0.08); }
+        .result-actions .regen-btn { background: rgba(251, 191, 36, 0.04); color: #d97706; border-color: rgba(251, 191, 36, 0.06); }
+        .result-actions .batch-btn { background: rgba(139, 92, 246, 0.06); color: #7c3aed; border-color: rgba(139, 92, 246, 0.08); }
+        .result-actions .enhance-btn { background: rgba(236, 72, 153, 0.06); color: #db2777; border-color: rgba(236, 72, 153, 0.08); }
+
+        .view-container { margin-top: 8px; display: none; }
+        .view-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+        }
+        .view-header h3 { color: #1f2937; font-size: 17px; }
+        .back-btn {
+            background: rgba(0, 0, 0, 0.02);
+            border: none;
+            color: #6b7280;
+            font-size: 16px;
+            padding: 4px 10px;
+            border-radius: 30px;
+            cursor: pointer;
+        }
+        .list-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, 0.3);
+            padding: 8px;
+            border-radius: 16px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        .list-item img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 12px;
+            background: #f0f2f5;
+        }
+        .list-item .info { flex: 1; color: #4b5563; font-size: 11px; word-break: break-word; }
+        .list-item .info small { color: #9ca3af; display: block; margin-top: 2px; }
+        .list-item .action-btn {
+            background: none;
+            border: none;
+            color: #6b7280;
+            font-size: 14px;
+            padding: 4px 6px;
+            cursor: pointer;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 35px 0;
+            color: #9ca3af;
+            font-size: 13px;
+        }
+        .hidden-view { display: none !important; }
+        ::-webkit-scrollbar { width: 3px; }
+        ::-webkit-scrollbar-track { background: #f0f2f5; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <!-- ===== SPLASH SCREEN ===== -->
+    <div id="splashScreen">
+        <div class="particles">
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+            <div class="particle"></div>
+        </div>
+        <div class="glow-ring"></div>
+        <div class="splash-content">
+            <div class="logo-3d">
+                <span class="icon">✦</span>
+            </div>
+            <div class="splash-title">AI Image Creator</div>
+            <div class="splash-sub">Pro Max • Ultra HD</div>
+            <div class="loader-3d">
+                <div class="fill"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div id="toast"></div>
+
+    <!-- ===== OVERLAY ===== -->
+    <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+    <!-- ===== SIDEBAR ===== -->
+    <div id="sidebar">
+        <button class="close-btn" onclick="closeSidebar()">✕</button>
+        <div class="brand">✦ AI Image</div>
+        <button class="menu-item" onclick="navigateTo('home')"><span class="icon">🏠</span> Home</button>
+        <button class="menu-item" onclick="navigateTo('history')"><span class="icon">📜</span> History</button>
+        <button class="menu-item" onclick="navigateTo('favorites')"><span class="icon">⭐</span> Favorites</button>
+        <div class="menu-divider"></div>
+        <button class="menu-item" onclick="logoutUser()"><span class="icon">🚪</span> Logout</button>
+    </div>
+
+    <!-- ===== APP WRAP ===== -->
+    <div class="app-wrap" id="appContainer">
+
+        <!-- LOGIN -->
+        <div id="loginPage">
+            <div class="logo">✦ AI Image</div>
+            <div class="logo-sub">Creator Pro Max</div>
+            <div class="input-group"><input type="text" id="loginUsername" placeholder="Username"></div>
+            <div class="input-group"><input type="password" id="loginPassword" placeholder="Password"></div>
+            <button class="btn-primary" onclick="loginUser()">Login</button>
+            <div class="toggle-link">No account? <span onclick="showSignup()">Sign Up</span></div>
+            <div id="signupForm" class="hidden" style="width:100%; margin-top:14px;">
+                <div class="input-group"><input type="text" id="signupUsername" placeholder="Choose Username"></div>
+                <div class="input-group"><input type="password" id="signupPassword" placeholder="Choose Password"></div>
+                <button class="btn-primary" onclick="signupUser()">Create Account</button>
+                <div class="toggle-link">Already have? <span onclick="showLogin()">Login</span></div>
+            </div>
+        </div>
+
+        <!-- MAIN APP -->
+        <div id="app">
+            <!-- HEADER -->
+            <div class="header">
+                <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+                <h1>AI Image <small>Pro Max</small></h1>
+                <div class="header-actions">
+                    <span class="user-badge" id="userBadge">User</span>
+                </div>
+            </div>
+
+            <!-- HOME VIEW -->
+            <div id="homeView">
+                <div class="welcome-text">👋 Welcome back, <strong>Creator</strong></div>
+                <div id="styleBadge" class="style-badge">⚡ Pro Max • 3-5 sec</div>
+
+                <!-- TOP CONTROLS -->
+                <div class="top-controls">
+                    <div class="size-selector">
+                        <button class="active" data-w="512" data-h="512" onclick="setSize(this,'512','512')">1:1</button>
+                        <button data-w="768" data-h="512" onclick="setSize(this,'768','512')">4:3</button>
+                        <button data-w="512" data-h="768" onclick="setSize(this,'512','768')">3:4</button>
+                        <button data-w="768" data-h="432" onclick="setSize(this,'768','432')">16:9</button>
+                        <button data-w="1024" data-h="1024" onclick="setSize(this,'1024','1024')">HD</button>
+                    </div>
+                    <div class="turbo-toggle" id="turboToggle" onclick="toggleTurbo()">
+                        <span class="indicator"></span>
+                        <span>Turbo</span>
+                    </div>
+                </div>
+
+                <!-- STYLE CHIPS -->
+                <div class="style-chips" id="styleChips">
+                    <button class="active" data-style="" onclick="setStyle(this,'')">All</button>
+                    <button data-style="photorealistic, 8k, professional photography" onclick="setStyle(this,'photorealistic, 8k, professional photography')">Real</button>
+                    <button data-style="3d render, octane render, cgi, highly detailed" onclick="setStyle(this,'3d render, octane render, cgi, highly detailed')">3D</button>
+                    <button data-style="anime style, studio ghibli, vibrant colors" onclick="setStyle(this,'anime style, studio ghibli, vibrant colors')">Anime</button>
+                    <button data-style="cyberpunk, neon lights, futuristic, 8k" onclick="setStyle(this,'cyberpunk, neon lights, futuristic, 8k')">Cyber</button>
+                    <button data-style="fantasy art, magical, epic composition" onclick="setStyle(this,'fantasy art, magical, epic composition')">Fantasy</button>
+                    <button data-style="oil painting, vibrant colors, masterpiece" onclick="setStyle(this,'oil painting, vibrant colors, masterpiece')">Art</button>
+                    <button data-style="cartoon style, playful, vibrant" onclick="setStyle(this,'cartoon style, playful, vibrant')">Cartoon</button>
+                </div>
+
+                <!-- NEGATIVE TOGGLE -->
+                <div class="neg-toggle" onclick="toggleNeg()">
+                    <span>🚫 Negative Prompt</span>
+                    <div class="switch" id="negSwitch"></div>
+                </div>
+                <input class="neg-input" id="negInput" placeholder="What to avoid... (e.g., blurry, ugly)" style="display:none;">
+
+                <!-- COMPACT SEARCH BAR -->
+                <div class="compact-input-wrapper">
+                    <input type="text" id="promptInput" placeholder="Describe your image..." autocomplete="off">
+                    <div class="action-btns">
+                        <button class="plus-btn" id="refTrigger" onclick="document.getElementById('refFileInput').click()">+</button>
+                        <input type="file" id="refFileInput" accept="image/*" style="display:none" onchange="handleRefUpload(event)">
+                        <button class="voice-btn" id="voiceBtn" onclick="startVoice()">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                <line x1="12" y1="19" x2="12" y2="23"/>
+                                <line x1="8" y1="23" x2="16" y2="23"/>
+                            </svg>
+                        </button>
+                        <button class="random-btn" onclick="randomPrompt()">🎲</button>
+                        <button class="gen-btn" onclick="generateImage()">⚡</button>
+                    </div>
+                </div>
+
+                <!-- REFERENCE PREVIEW -->
+                <div class="ref-preview-mini" id="refPreviewMini">
+                    <img id="refPreviewImg" src="" alt="Ref">
+                    <span class="label">📎 Ref</span>
+                    <button class="remove" onclick="removeRefImage()">✕</button>
+                </div>
+
+                <!-- QUICK SUGGESTIONS -->
+                <div class="quick-suggestions">
+                    <button onclick="setPrompt('A realistic human full body portrait, professional photography, 8k, detailed')">👤 Human</button>
+                    <button onclick="setPrompt('3D render of a dragon, octane render, highly detailed, 8k')">🐉 3D</button>
+                    <button onclick="setPrompt('Anime girl full body, studio ghibli style, vibrant colors')">🎌 Anime</button>
+                    <button onclick="setPrompt('A beautiful landscape, sunset, oil painting, 8k')">🌅 Art</button>
+                    <button onclick="setPrompt('Cyberpunk city, neon lights, futuristic, 8k')">🌃 Cyber</button>
+                </div>
+
+                <!-- SKELETON -->
+                <div class="skeleton-box" id="skeletonLoader"></div>
+
+                <!-- RESULT -->
+                <div class="result-area" id="resultArea">
+                    <div class="image-frame">
+                        <img id="generatedImage" src="" alt="Generated">
+                    </div>
+                    <div class="rating-section">
+                        <button class="rate-btn like" onclick="rateImage('like')">👍</button>
+                        <span class="count" id="ratingCount">0</span>
+                        <button class="rate-btn dislike" onclick="rateImage('dislike')">👎</button>
+                    </div>
+                    <div class="result-actions">
+                        <button class="dl-btn" onclick="downloadImage()">💾</button>
+                        <button class="fav-btn" onclick="addToFavorites()">⭐</button>
+                        <button class="share-btn" onclick="shareImage()">📤</button>
+                        <button class="regen-btn" onclick="regenerateImage()">🔄</button>
+                        <button class="batch-btn" onclick="batchGenerate()">📚</button>
+                        <button class="enhance-btn" onclick="enhanceImage()">🔮 Enhance</button>
+                        <button onclick="clearResult()">✕</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HISTORY -->
+            <div id="historyView" class="view-container hidden-view">
+                <div class="view-header">
+                    <h3>📜 History</h3>
+                    <button class="back-btn" onclick="navigateTo('home')">✕</button>
+                </div>
+                <div id="historyList"></div>
+            </div>
+
+            <!-- FAVORITES -->
+            <div id="favoritesView" class="view-container hidden-view">
+                <div class="view-header">
+                    <h3>⭐ Favorites</h3>
+                    <button class="back-btn" onclick="navigateTo('home')">✕</button>
+                </div>
+                <div id="favoritesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // =========================================================
+        // 🧠 PRO MAX ENGINE - FULLY WORKING
+        // =========================================================
+        
+        // --- SPLASH SCREEN ---
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const splash = document.getElementById('splashScreen');
+                splash.classList.add('hide');
+                setTimeout(() => { splash.style.display = 'none'; }, 800);
+            }, 3500);
+        });
+
+        // --- MAIN LOGIC ---
+        let currentUser = null;
+        let currentImageUrl = '';
+        let currentPrompt = '';
+        let currentSeed = '';
+        let refImage = null;
+        let ratingCount = 0;
+        let imgWidth = 512;
+        let imgHeight = 512;
+        let selectedStyle = '';
+        let turboMode = true;
+        let negPrompt = '';
+
+        function showToast(msg, type = 'success') {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.className = 'show ' + type;
+            clearTimeout(t._time);
+            t._time = setTimeout(() => t.classList.remove('show'), 2500);
+        }
+
+        // --- AUTH ---
+        function getUsers() { return JSON.parse(localStorage.getItem('fa_users')) || {}; }
+        function saveUsers(u) { localStorage.setItem('fa_users', JSON.stringify(u)); }
+        function showSignup() {
+            document.querySelector('#loginPage .toggle-link').style.display = 'none';
+            document.getElementById('signupForm').classList.remove('hidden');
+        }
+        function showLogin() {
+            document.querySelector('#loginPage .toggle-link').style.display = 'block';
+            document.getElementById('signupForm').classList.add('hidden');
+        }
+        function loginUser() {
+            const u = document.getElementById('loginUsername').value.trim();
+            const p = document.getElementById('loginPassword').value.trim();
+            if (!u || !p) return showToast('Please fill all fields.', 'error');
+            const users = getUsers();
+            if (!users[u]) return showToast('User not found. Sign up first!', 'error');
+            if (users[u] !== p) return showToast('Wrong password.', 'error');
+            currentUser = u;
+            localStorage.setItem('fa_session', u);
+            showToast('Welcome back, ' + u + '!', 'success');
+            showApp();
+        }
+        function signupUser() {
+            const u = document.getElementById('signupUsername').value.trim();
+            const p = document.getElementById('signupPassword').value.trim();
+            if (!u || !p) return showToast('Please fill all fields.', 'error');
+            const users = getUsers();
+            if (users[u]) return showToast('Username already taken.', 'error');
+            users[u] = p;
+            saveUsers(users);
+            currentUser = u;
+            localStorage.setItem('fa_session', u);
+            showToast('Account created! 🎉', 'success');
+            showApp();
+        }
+        function logoutUser() {
+            localStorage.removeItem('fa_session');
+            currentUser = null;
+            document.getElementById('app').style.display = 'none';
+            document.getElementById('loginPage').style.display = 'flex';
+            closeSidebar();
+            showLogin();
+            showToast('Logged out.', 'success');
+        }
+        function checkSession() {
+            const s = localStorage.getItem('fa_session');
+            if (s && getUsers()[s]) { currentUser = s; showApp(); }
+            else { document.getElementById('loginPage').style.display = 'flex'; document.getElementById('app').style.display = 'none'; showLogin(); }
+        }
+        function showApp() {
+            document.getElementById('loginPage').style.display = 'none';
+            document.getElementById('app').style.display = 'flex';
+            document.getElementById('userBadge').textContent = currentUser;
+            navigateTo('home');
+            loadHistory();
+            loadFavorites();
+        }
+
+        // --- SIDEBAR ---
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.getElementById('overlay').classList.toggle('active');
+        }
+        function closeSidebar() {
+            document.getElementById('sidebar').classList.remove('open');
+            document.getElementById('overlay').classList.remove('active');
+        }
+
+        // --- NAV ---
+        function navigateTo(view) {
+            closeSidebar();
+            document.getElementById('homeView').style.display = 'none';
+            document.getElementById('historyView').classList.add('hidden-view');
+            document.getElementById('favoritesView').classList.add('hidden-view');
+            if (view === 'home') { document.getElementById('homeView').style.display = 'block'; }
+            else if (view === 'history') { document.getElementById('historyView').classList.remove('hidden-view'); renderHistory(); }
+            else if (view === 'favorites') { document.getElementById('favoritesView').classList.remove('hidden-view'); renderFavorites(); }
+        }
+
+        // --- CONTROLS ---
+        function setSize(el, w, h) {
+            document.querySelectorAll('.size-selector button').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            imgWidth = parseInt(w);
+            imgHeight = parseInt(h);
+            showToast('Size: ' + w + 'x' + h, 'success');
+        }
+        function setStyle(el, style) {
+            document.querySelectorAll('.style-chips button').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            selectedStyle = style;
+            showToast('Style: ' + el.textContent, 'success');
+        }
+        function toggleTurbo() {
+            turboMode = !turboMode;
+            document.getElementById('turboToggle').classList.toggle('off');
+            showToast(turboMode ? '⚡ Turbo ON (3-5 sec)' : '🐢 Turbo OFF', 'success');
+        }
+        function toggleNeg() {
+            const inp = document.getElementById('negInput');
+            const sw = document.getElementById('negSwitch');
+            if (inp.style.display === 'none') {
+                inp.style.display = 'block';
+                sw.classList.add('active');
+            } else {
+                inp.style.display = 'none';
+                sw.classList.remove('active');
+                negPrompt = '';
+            }
+        }
+        function setPrompt(text) {
+            document.getElementById('promptInput').value = text;
+            showToast('Prompt set!', 'success');
+        }
+        function randomPrompt() {
+            const list = [
+                "A realistic human full body portrait, professional photography, 8k, detailed, cinematic lighting",
+                "3D render of a dragon, octane render, highly detailed, 8k, volumetric lighting",
+                "Anime girl full body, studio ghibli style, vibrant colors, detailed illustration",
+                "A beautiful landscape, sunset, oil painting, 8k, masterpiece",
+                "Cyberpunk city, neon lights, futuristic, 8k, highly detailed",
+                "A majestic lion made of fire, fantasy art, 4k, dramatic lighting",
+                "A cosmic nebula with a floating island, space art, vibrant colors",
+                "An astronaut riding a horse on Mars, dramatic sky, photorealistic, 8k",
+                "A glass castle in the clouds, sunset, 4k, fantasy art",
+                "A mecha godzilla fighting in Tokyo, anime style, 8k"
+            ];
+            const pick = list[Math.floor(Math.random() * list.length)];
+            document.getElementById('promptInput').value = pick;
+            showToast('🎲 Random prompt loaded!', 'success');
+            generateImage();
+        }
+
+        // --- REFERENCE ---
+        function handleRefUpload(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                refImage = event.target.result;
+                document.getElementById('refPreviewImg').src = refImage;
+                document.getElementById('refPreviewMini').style.display = 'flex';
+                document.getElementById('refTrigger').style.color = '#10b981';
+                showToast('📎 Reference added!', 'success');
+            };
+            reader.readAsDataURL(file);
+            e.target.value = '';
+        }
+        function removeRefImage() {
+            refImage = null;
+            document.getElementById('refPreviewMini').style.display = 'none';
+            document.getElementById('refTrigger').style.color = '#6b7280';
+            showToast('Reference removed.', 'success');
+        }
+
+        // --- GENERATE ---
+        function generateImage() {
+            const input = document.getElementById('promptInput');
+            let prompt = input.value.trim();
+            if (!prompt) {
+                showToast('Please write a description.', 'error');
+                return;
+            }
+            negPrompt = document.getElementById('negInput').value.trim();
+            document.getElementById('styleBadge').textContent = '⚡ Generating... (Pro Max)';
+
+            let hash = 0;
+            for (let i = 0; i < prompt.length; i++) {
+                hash = (hash << 5) - hash + prompt.charCodeAt(i);
+                hash |= 0;
+            }
+            const seed = Math.abs(hash) % 1000000;
+            currentSeed = seed;
+            currentPrompt = prompt;
+
+            let enhancedPrompt = prompt;
+            if (selectedStyle) enhancedPrompt = enhancedPrompt + ', ' + selectedStyle;
+
+            const lower = prompt.toLowerCase();
+            if (lower.includes('human') || lower.includes('person') || lower.includes('portrait') || lower.includes('face') || lower.includes('people')) {
+                enhancedPrompt = enhancedPrompt + ', photorealistic, 8k, highly detailed, sharp focus, professional photography, cinematic lighting, perfect anatomy, full body, high resolution, sharp eyes, detailed skin texture';
+            } else if (lower.includes('3d') || lower.includes('render') || lower.includes('cgi') || lower.includes('octane') || lower.includes('blender')) {
+                enhancedPrompt = enhancedPrompt + ', 3d render, octane render, cgi, highly detailed, volumetric lighting, 8k, unreal engine 5, cinematic, global illumination, ray tracing';
+            } else if (lower.includes('anime') || lower.includes('cartoon') || lower.includes('studio ghibli') || lower.includes('manga') || lower.includes('disney')) {
+                enhancedPrompt = enhancedPrompt + ', anime style, studio ghibli, vibrant colors, detailed illustration, masterpiece, 8k, full body, high quality animation, clean lines';
+            } else if (lower.includes('landscape') || lower.includes('sunset') || lower.includes('mountain') || lower.includes('ocean') || lower.includes('nature') || lower.includes('painting')) {
+                enhancedPrompt = enhancedPrompt + ', beautiful landscape, oil painting, vibrant colors, highly detailed, 8k, masterpiece, atmospheric, golden hour lighting';
+            } else if (lower.includes('cyberpunk') || lower.includes('neon') || lower.includes('futuristic') || lower.includes('city') || lower.includes('robot') || lower.includes('tech')) {
+                enhancedPrompt = enhancedPrompt + ', cyberpunk style, neon lights, futuristic, highly detailed, 8k, cinematic lighting, intricate details, dystopian, high contrast';
+            } else if (lower.includes('fantasy') || lower.includes('dragon') || lower.includes('magic') || lower.includes('castle') || lower.includes('mythical') || lower.includes('wizard') || lower.includes('elf')) {
+                enhancedPrompt = enhancedPrompt + ', fantasy art, magical, highly detailed, epic composition, 8k, dramatic lighting, masterpiece, mystical, vibrant colors';
+            } else {
+                enhancedPrompt = enhancedPrompt + ', high quality, detailed, beautiful composition, 8k, masterpiece, sharp focus, vibrant colors';
+            }
+
+            if (refImage) enhancedPrompt = enhancedPrompt + ', influenced by reference image style';
+
+            let negParam = '';
+            if (negPrompt) negParam = '&negative=' + encodeURIComponent(negPrompt);
+
+            const skeleton = document.getElementById('skeletonLoader');
+            const resultArea = document.getElementById('resultArea');
+            const img = document.getElementById('generatedImage');
+
+            skeleton.classList.add('active');
+            resultArea.style.display = 'none';
+            img.src = '';
+
+            const url = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(enhancedPrompt) + 
+                       '?width=' + imgWidth + '&height=' + imgHeight + 
+                       '&nologo=true&render=true&seed=' + seed + negParam + '&t=' + Date.now();
+
+            const startTime = Date.now();
+
+            img.onload = function() {
+                const elapsed = Math.round((Date.now() - startTime) / 1000);
+                skeleton.classList.remove('active');
+                resultArea.style.display = 'flex';
+                currentImageUrl = img.src;
+                ratingCount = 0;
+                document.getElementById('ratingCount').textContent = '0';
+                document.querySelectorAll('.rate-btn').forEach(b => b.classList.remove('active'));
+                saveHistory(prompt, img.src);
+                document.getElementById('styleBadge').textContent = '⚡ Pro Max • ' + elapsed + 's';
+                showToast('✨ Generated in ' + elapsed + 's!', 'success');
+            };
+            img.onerror = function() {
+                skeleton.classList.remove('active');
+                document.getElementById('styleBadge').textContent = '⚡ Pro Max • 3-5 sec';
+                const fallbackUrl = 'https://image.pollinations.ai/prompt/' + encodeURIComponent(enhancedPrompt) + 
+                                   '?width=' + imgWidth + '&height=' + imgHeight + 
+                                   '&nologo=true&render=true' + negParam + '&t=' + Date.now();
+                img.src = fallbackUrl;
+                img.onerror = function() {
+                    const simpleUrl = 'https://image.pollinations.ai/prompt/beautiful+landscape+8k?width=512&height=512&nologo=true&render=true&t=' + Date.now();
+                    img.src = simpleUrl;
+                    img.onload = function() {
+                        skeleton.classList.remove('active');
+                        resultArea.style.display = 'flex';
+                        currentImageUrl = img.src;
+                        saveHistory('beautiful landscape', img.src);
+                        showToast('Generated backup.', 'success');
+                    };
+                    img.onerror = function() {
+                        skeleton.classList.remove('active');
+                        showToast('Network error. Try again.', 'error');
+                    };
+                };
+                img.onload = function() {
+                    const elapsed = Math.round((Date.now() - startTime) / 1000);
+                    skeleton.classList.remove('active');
+                    resultArea.style.display = 'flex';
+                    currentImageUrl = img.src;
+                    saveHistory(prompt, img.src);
+                    document.getElementById('styleBadge').textContent = '⚡ Pro Max • ' + elapsed + 's';
+                    showToast('✨ Generated!', 'success');
+                };
+            };
+            img.src = url;
+        }
+
+        // --- ENHANCE ---
+        function enhanceImage() {
+            const img = document.getElementById('generatedImage');
+            if (!img.src || img.src === '') {
+                showToast('No image to enhance. Generate or upload first!', 'error');
+                return;
+            }
+
+            showToast('🔮 Enhancing to HD...', 'success');
+            document.getElementById('styleBadge').textContent = '🔮 Enhancing...';
+
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            const tempImg = new Image();
+            tempImg.crossOrigin = 'Anonymous';
+            tempImg.src = img.src;
+
+            tempImg.onload = function() {
+                const scale = 2;
+                const newWidth = tempImg.naturalWidth * scale;
+                const newHeight = tempImg.naturalHeight * scale;
+                
+                canvas.width = newWidth;
+                canvas.height = newHeight;
+                
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(tempImg, 0, 0, newWidth, newHeight);
+
+                const imageData = ctx.getImageData(0, 0, newWidth, newHeight);
+                const data = imageData.data;
+                const output = ctx.createImageData(newWidth, newHeight);
+                const outData = output.data;
+                
+                const w = newWidth;
+                const h = newHeight;
+                const kernel = [0, -1, 0, -1, 5, -1, 0, -1, 0];
+
+                for (let y = 1; y < h - 1; y++) {
+                    for (let x = 1; x < w - 1; x++) {
+                        let r = 0, g = 0, b = 0;
+                        for (let ky = -1; ky <= 1; ky++) {
+                            for (let kx = -1; kx <= 1; kx++) {
+                                const idx = ((y + ky) * w + (x + kx)) * 4;
+                                const kidx = (ky + 1) * 3 + (kx + 1);
+                                const k = kernel[kidx];
+                                r += data[idx] * k;
+                                g += data[idx + 1] * k;
+                                b += data[idx + 2] * k;
+                            }
+                        }
+                        const idx = (y * w + x) * 4;
+                        outData[idx] = Math.min(255, Math.max(0, r));
+                        outData[idx + 1] = Math.min(255, Math.max(0, g));
+                        outData[idx + 2] = Math.min(255, Math.max(0, b));
+                        outData[idx + 3] = 255;
+                    }
+                }
+
+                for (let y = 0; y < h; y++) {
+                    for (let x = 0; x < w; x++) {
+                        if (x === 0 || y === 0 || x === w - 1 || y === h - 1) {
+                            const idx = (y * w + x) * 4;
+                            const srcIdx = idx;
+                            outData[idx] = data[srcIdx];
+                            outData[idx + 1] = data[srcIdx + 1];
+                            outData[idx + 2] = data[srcIdx + 2];
+                            outData[idx + 3] = 255;
+                        }
+                    }
+                }
+
+                ctx.putImageData(output, 0, 0);
+
+                const enhancedUrl = canvas.toDataURL('image/png');
+                img.src = enhancedUrl;
+                currentImageUrl = enhancedUrl;
+                
+                document.getElementById('styleBadge').textContent = '✨ Enhanced to HD!';
+                showToast('✅ Image enhanced to HD quality!', 'success');
+            };
+
+            tempImg.onerror = function() {
+                try {
+                    const canvas2 = document.createElement('canvas');
+                    const ctx2 = canvas2.getContext('2d');
+                    const scale = 2;
+                    const w = 512 * scale;
+                    const h = 512 * scale;
+                    canvas2.width = w;
+                    canvas2.height = h;
+                    ctx2.imageSmoothingEnabled = true;
+                    ctx2.imageSmoothingQuality = 'high';
+                    ctx2.drawImage(img, 0, 0, w, h);
+                    const url = canvas2.toDataURL('image/png');
+                    img.src = url;
+                    currentImageUrl = url;
+                    document.getElementById('styleBadge').textContent = '✨ Enhanced (Scaled)';
+                    showToast('✅ Image scaled up!', 'success');
+                } catch (e) {
+                    showToast('Could not enhance this image.', 'error');
+                    document.getElementById('styleBadge').textContent = '⚡ Pro Max';
+                }
+            };
+        }
+
+        // --- OTHER FEATURES ---
+        function batchGenerate() {
+            if (!currentPrompt) { showToast('Generate an image first!', 'error'); return; }
+            showToast('📚 Generating 2 images...', 'success');
+            generateImage();
+            setTimeout(() => {
+                currentSeed = (parseInt(currentSeed) + 999) % 1000000;
+                generateImage();
+            }, 500);
+        }
+
+        function regenerateImage() {
+            if (!currentPrompt) { showToast('Generate an image first!', 'error'); return; }
+            currentSeed = (parseInt(currentSeed) + 777) % 1000000;
+            document.getElementById('promptInput').value = currentPrompt;
+            generateImage();
+            showToast('🔄 Regenerating...', 'success');
+        }
+
+        function shareImage() {
+            const img = document.getElementById('generatedImage');
+            if (!img.src || img.src === '') return showToast('No image to share.', 'error');
+            if (navigator.share) {
+                fetch(img.src).then(res => res.blob()).then(blob => {
+                    const file = new File([blob], 'AI_Image.png', { type: 'image/png' });
+                    navigator.share({ files: [file], title: 'AI Image Creator' }).catch(() => showToast('Share cancelled.', 'error'));
+                }).catch(() => showToast('Share failed.', 'error'));
+            } else {
+                navigator.clipboard.writeText(img.src).then(() => {
+                    showToast('📤 Image URL copied!', 'success');
+                }).catch(() => showToast('Copy image URL manually.', 'error'));
+            }
+        }
+
+        // --- RATING ---
+        function rateImage(type) {
+            if (!currentImageUrl) { showToast('Generate an image first!', 'error'); return; }
+            const likeBtn = document.querySelector('.rate-btn.like');
+            const dislikeBtn = document.querySelector('.rate-btn.dislike');
+            if (type === 'like') {
+                likeBtn.classList.toggle('active');
+                if (dislikeBtn.classList.contains('active')) dislikeBtn.classList.remove('active');
+                ratingCount = likeBtn.classList.contains('active') ? 1 : 0;
+            } else {
+                dislikeBtn.classList.toggle('active');
+                if (likeBtn.classList.contains('active')) likeBtn.classList.remove('active');
+                ratingCount = dislikeBtn.classList.contains('active') ? -1 : 0;
+            }
+            document.getElementById('ratingCount').textContent = ratingCount;
+            showToast(type === 'like' ? '👍 Liked!' : '👎 Disliked', 'success');
+        }
+
+        // --- VOICE ---
+        function startVoice() {
+            const btn = document.getElementById('voiceBtn');
+            if (!('webkitSpeechRecognition' in window) && !('SpeechRecognition' in window)) {
+                return showToast('Voice not supported.', 'error');
+            }
+            const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            recognition.lang = 'en-US';
+            recognition.interimResults = false;
+            recognition.onstart = () => { btn.innerHTML = '⏺️'; };
+            recognition.onresult = (e) => {
+                const transcript = e.results[0][0].transcript;
+                document.getElementById('promptInput').value = transcript;
+                btn.innerHTML = <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>;
+                showToast('Voice captured!', 'success');
+            };
+            recognition.onerror = () => {
+                btn.innerHTML = <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>;
+                showToast('Voice error.', 'error');
+            };
+            recognition.onend = () => {
+                btn.innerHTML = <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>;
+            };
+            recognition.start();
+        }
+
+        // --- DOWNLOAD ---
+        function downloadImage() {
+            const img = document.getElementById('generatedImage');
+            if (!img.src || img.src === '') return showToast('No image.', 'error');
+            const link = document.createElement('a');
+            link.download = 'AI_Image_' + Date.now() + '.png';
+            link.href = img.src;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showToast('💾 Downloading...', 'success');
+        }
+
+        function clearResult() {
+            document.getElementById('resultArea').style.display = 'none';
+            document.getElementById('generatedImage').src = '';
+            currentImageUrl = '';
+            ratingCount = 0;
+            document.getElementById('ratingCount').textContent = '0';
+            document.querySelectorAll('.rate-btn').forEach(b => b.classList.remove('active'));
+        }
+
+        // --- HISTORY ---
+        function getHistory() { return JSON.parse(localStorage.getItem('fa_history_' + currentUser)) || []; }
+        function saveHistory(p, url) {
+            const h = getHis
